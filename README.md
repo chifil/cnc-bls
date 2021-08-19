@@ -1,2 +1,2 @@
 # cnc-bls
-bls lib
+bls lib for golang
