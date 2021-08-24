@@ -18,6 +18,36 @@ go get github.com/cnc-project/cnc-bls
 ```
 
 ## instructions for use
+
+### Example
+
+```go
+package main
+
+import (
+  "fmt"
+  cb "github.com/cnc-project/cnc-bls"
+)
+
+func main(){
+  // Generate a mnemonic for memorization or user-friendly seeds
+  entropy, _ := cb.NewEntropy()
+  mnemonic, _ := cb.NewMnemonic(entropy)
+
+  // Generate a Bip32 HD wallet for the mnemonic and a user supplied password
+  seed := cb.NewSeed(mnemonic, "Secret Passphrase")
+
+  priKey := cb.KeyGen(seed)
+  publicKey := priKey.GetPublicKey()
+
+  // Display mnemonic and keys
+  fmt.Println("Mnemonic: ", mnemonic)
+  fmt.Println("Master private key: ", priKey)
+  fmt.Println("Master public key: ", publicKey)
+  fmt.Println("Master generate fingerprint", publicKey.FingerPrint())
+}
+```
+
 ### load private key
 1. mnemonic loading
 ```
@@ -48,7 +78,7 @@ func (key PrivateKey) FarmerSk() PrivateKey
 ```
 func (key PrivateKey) PoolSk() PrivateKey 
 ```
-5. derive 生walletSk
+5. derive walletSk
 ```
 func (key PrivateKey) WalletSk(index int) PrivateKey
 ```
