@@ -16,6 +16,14 @@ func (asm *AugSchemeMPL) Sign(sk PrivateKey, message []byte) []byte {
 	return bls12381.NewG2().ToCompressed(coreSignMpl(sk, message, AugSchemeDst))
 }
 
+// HashToCurve hash digest
+func (asm *AugSchemeMPL) HashToCurve (pk PublicKey, message []byte) []byte {
+	g2Map := bls12381.NewG2()
+	q, _ := g2Map.HashToCurve(append(pk.Bytes(),message...), AugSchemeDst)
+	digest := g2Map.ToCompressed(q)
+	return digest
+}
+
 // Verify message of pk
 func (asm *AugSchemeMPL) Verify(pk PublicKey, message []byte, sig []byte) bool {
 	return coreVerifyMpl(
@@ -23,6 +31,15 @@ func (asm *AugSchemeMPL) Verify(pk PublicKey, message []byte, sig []byte) bool {
 		append(pk.Bytes(), message...),
 		sig,
 		AugSchemeDst,
+	)
+}
+
+// HashVerify verify hash digest
+func (asm *AugSchemeMPL) HashVerify (pk PublicKey, digest []byte, sig []byte) bool {
+	return coreHashVerifyMpl(
+		pk,
+		digest,
+		sig,
 	)
 }
 
@@ -34,6 +51,11 @@ func (asm *AugSchemeMPL) Aggregate(signatures ...[]byte) ([]byte, error) {
 // AggregateVerify multiple signatures verify
 func (asm *AugSchemeMPL) AggregateVerify(pks [][]byte, messages [][]byte, sig []byte) bool {
 	return coreAggregateVerify(pks, messages, sig, AugSchemeDst)
+}
+
+// AggregateHashVerify multiple signatures Hash verify
+func (asm *AugSchemeMPL) AggregateHashVerify(pks [][]byte, digests [][]byte, sig []byte) bool {
+	return coreHashAggregateVerify(pks, digests, sig)
 }
 
 func coreSignMpl(sk PrivateKey, message, dst []byte) *bls12381.PointG2 {
@@ -50,6 +72,28 @@ func coreVerifyMpl(pk PublicKey, message []byte, sig, dst []byte) bool {
 
 	g2Map := bls12381.NewG2()
 	q, _ := g2Map.HashToCurve(message, dst)
+
+	// verify
+	signature, err := bls12381.NewG2().FromCompressed(sig)
+	if err != nil {
+		return false
+	}
+
+	engine := bls12381.NewEngine()
+
+	g1Neg := new(bls12381.PointG1)
+	g1Neg = bls12381.NewG1().Neg(g1Neg, G1Generator())
+
+	engine = engine.AddPair(pk.G1(), q)
+	engine = engine.AddPair(g1Neg, signature)
+
+	return engine.Check()
+}
+
+func coreHashVerifyMpl(pk PublicKey, digest []byte, sig []byte) bool {
+
+	g2Map := bls12381.NewG2()
+	q, _ := g2Map.FromCompressed(digest)
 
 	// verify
 	signature, err := bls12381.NewG2().FromCompressed(sig)
@@ -113,6 +157,41 @@ func coreAggregateVerify(pks, messages [][]byte, sig, dst []byte) bool {
 
 		g2Map := bls12381.NewG2()
 		q, err := g2Map.HashToCurve(append(pks[index], messages[index]...), dst)
+		if err != nil {
+			return false
+		}
+
+		engine.AddPair(p, q)
+	}
+	return engine.Check()
+}
+
+func coreHashAggregateVerify(pks, digests [][]byte, sig []byte) bool {
+	pksLen := len(pks)
+
+	if pksLen != len(digests) && pksLen < 1 {
+		return false
+	}
+
+	g1Neg := new(bls12381.PointG1)
+	g1Neg = bls12381.NewG1().Neg(g1Neg, G1Generator())
+
+	signature, err := bls12381.NewG2().FromCompressed(sig)
+	if err != nil {
+		return false
+	}
+
+	engine := bls12381.NewEngine()
+	engine.AddPair(g1Neg, signature)
+
+	for index, pk := range pks {
+		p, err := bls12381.NewG1().FromCompressed(pk)
+		if err != nil {
+			return false
+		}
+
+		g2Map := bls12381.NewG2()
+		q, _ := g2Map.FromCompressed(digests[index])
 		if err != nil {
 			return false
 		}

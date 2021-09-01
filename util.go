@@ -18,6 +18,11 @@ func G1Generator() *bls12381.PointG1 {
 	return one
 }
 
+// CreateZeroSign creates a zero signature, used as placeholder in filecoin.
+func CreateZeroSign() []byte {
+	return bls12381.NewG2().ToCompressed(bls12381.NewG2().Zero())
+}
+
 func extractExpand(L int, key, salt, info []byte) (okm []byte) {
 	okm = make([]byte, L)
 	_, _ = hkdf.New(sha256.New, key, salt, info).Read(okm)

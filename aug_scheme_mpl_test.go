@@ -52,3 +52,30 @@ func TestAggregate(t *testing.T) {
 		aggSig,
 	))
 }
+
+
+func TestAggreSign(t *testing.T) {
+	foo,_ :=hex.DecodeString("3a0463dd5fb221a977798af8b4be2f8c36aaeabcf830b155b942873e05e9d385")
+	bar,_ :=hex.DecodeString("71845949cd1a7cd11868171f1c5aed2ac89270a12a3aefc263e3c7b966d943e1")
+	fooPrivateKey := KeyFromBytes(foo)
+	barPrivateKey := KeyFromBytes(bar)
+	fooPublicKey := fooPrivateKey.GetPublicKey()
+	barPublicKey := barPrivateKey.GetPublicKey()
+
+	fooMessage := []byte("hello foo")
+	barMessage := []byte("hello bar!")
+
+	fooSign := (&AugSchemeMPL{}).Sign(fooPrivateKey, fooMessage)
+	barSign := (&AugSchemeMPL{}).Sign(barPrivateKey, barMessage)
+
+	aggregate, _ := (&AugSchemeMPL{}).Aggregate(fooSign, barSign)
+
+	t.Log("AggregateVerify:", (&AugSchemeMPL{}).AggregateVerify(
+		[][]byte{
+			fooPublicKey.Bytes(),
+			barPublicKey.Bytes(),
+		}, [][]byte{
+			fooMessage,
+			barMessage,
+		}, aggregate))
+}
