@@ -3,7 +3,7 @@ package bls
 import (
 	"crypto/sha512"
 	"encoding/hex"
-	bls12381 "github.com/kilic/bls12-381"
+	bls12381 "github.com/cnc-project/cnc-bls/bls12-381"
 	"golang.org/x/crypto/pbkdf2"
 	"math/big"
 	"strings"

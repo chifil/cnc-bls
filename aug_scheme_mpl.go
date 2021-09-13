@@ -2,7 +2,7 @@ package bls
 
 import (
 	"errors"
-	bls12381 "github.com/kilic/bls12-381"
+	bls12381 "github.com/cnc-project/cnc-bls/bls12-381"
 )
 
 var (
@@ -65,6 +65,7 @@ func coreSignMpl(sk PrivateKey, message, dst []byte) *bls12381.PointG2 {
 
 	q, _ := g2Map.HashToCurve(append(pk.Bytes(), message...), dst)
 
+	// return g2Map.MulScalar(g2Map.New(), q, sk.value)
 	return g2Map.MulScalar(g2Map.New(), q, bls12381.NewFr().FromBytes(sk.Bytes()))
 }
 

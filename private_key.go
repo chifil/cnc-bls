@@ -2,7 +2,7 @@ package bls
 
 import (
 	"encoding/hex"
-	bls12381 "github.com/kilic/bls12-381"
+	bls12381 "github.com/cnc-project/cnc-bls/bls12-381"
 	"math/big"
 )
 
@@ -24,6 +24,7 @@ type PrivateKey struct {
 func (key PrivateKey) GetPublicKey() PublicKey {
 	g1 := bls12381.NewG1()
 	return PublicKey{
+		// value: g1.MulScalar(g1.New(), G1Generator(), key.value),
 		value: g1.MulScalar(g1.New(), G1Generator(), bls12381.NewFr().FromBytes(key.value.Bytes())),
 	}
 }
