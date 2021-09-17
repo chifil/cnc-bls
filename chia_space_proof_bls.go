@@ -10,22 +10,26 @@ func CalculatePlotFilterInput(plotId ,challengeHash,signagePoint [HashSize]byte)
 	copy(bytes,plotId[:])
 	copy(bytes[32:],challengeHash[:])
 	copy(bytes[32*2:],signagePoint[:])
-	return sha256.New().Sum(bytes)
+	sum256 := sha256.Sum256(bytes)
+	return sum256[:]
 }
 
 // CalculatePosChallenge return [32]byte
 func CalculatePosChallenge(plotId, challengeHash, signagePoint [HashSize]byte) []byte {
-	return sha256.New().Sum(CalculatePlotFilterInput(plotId,challengeHash,signagePoint))
+	sum256 := sha256.Sum256(CalculatePlotFilterInput(plotId, challengeHash, signagePoint))
+	return sum256[:]
 }
 
 // CalculatePlotIdPk return [32]byte
 func CalculatePlotIdPk(poolContractPuzzleHash, plotPublicKey PublicKey) []byte {
-	return sha256.New().Sum(append(poolContractPuzzleHash.Bytes(), plotPublicKey.Bytes()...))
+	sum256 := sha256.Sum256(append(poolContractPuzzleHash.Bytes(), plotPublicKey.Bytes()...))
+	return sum256[:]
 }
 
 // CalculatePlotIdPh return [32]byte
 func CalculatePlotIdPh(poolContractPuzzleHash [HashSize]byte, plotPublicKey PublicKey) []byte {
-	return sha256.New().Sum(append(poolContractPuzzleHash[:], plotPublicKey.Bytes()...))
+	sum256 := sha256.Sum256(append(poolContractPuzzleHash[:], plotPublicKey.Bytes()...))
+	return sum256[:]
 }
 
 func GeneratePlotPublicKey(localPk, farmerPk PublicKey, includeTaproot bool) PublicKey {
@@ -39,7 +43,7 @@ func GenerateTaprootSk(localPk, farmerPk PublicKey) PrivateKey {
 	taprootKey := localPk.Add(farmerPk).Bytes()
 	taprootKey = append(taprootKey, localPk.Bytes()...)
 	taprootKey = append(taprootKey, farmerPk.Bytes()...)
-	sum := sha256.New().Sum(taprootKey)
-	return KeyGen(sum)
+	sum := sha256.Sum256(taprootKey)
+	return KeyGen(sum[:])
 }
 

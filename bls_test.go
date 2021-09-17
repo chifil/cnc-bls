@@ -2,7 +2,9 @@ package bls
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"testing"
 )
 
@@ -103,4 +105,17 @@ func TestPublicKeyAdd(t *testing.T) {
 		Add(localPk)
 	// will be 8e0d77cc057663bb70d834acfa584117232f3ce0e1519a0b927bce626bdd7131a6896b02b8ad80a1dec3eddcbc1ec471
 	t.Log(aggKey.Hex())
+}
+
+func TestHash256(t *testing.T) {
+// CalculatePlotFilterInput(plotId ,challengeHash,signagePoint [HashSize]byte) []byte
+// CalculatePosChallenge(plotId, challengeHash, signagePoint [HashSize]byte) []byte
+// CalculatePlotIdPk(poolContractPuzzleHash, plotPublicKey PublicKey) []byte
+// CalculatePlotIdPh(poolContractPuzzleHash [HashSize]byte, plotPublicKey PublicKey) []byte
+
+	b := []byte("58cfcaee3c6892a52b18761cfd7db1c9d3a3c24a765d91394fd0c71e53e2cdde")
+	sum := sha256.Sum256(b)
+	fmt.Println("hex: ",sum)
+	fmt.Println("hex: ",hex.EncodeToString(sum[:]))
+
 }
