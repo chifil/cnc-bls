@@ -1,11 +1,30 @@
 package bls
 
-import "crypto/sha256"
+import (
+	"bytes"
+	"crypto/sha256"
+)
 
 const HashSize = 32
+type HashDigest256 [HashSize]byte
+
+var bytes32 [32]byte
+func (h HashDigest256) IsZero() bool {
+	return bytes.Equal(h[:],bytes32[:])
+}
+
+func (h HashDigest256) Bytes() []byte {
+	return h[:]
+}
+
+func HashDigest256FromBytes(b []byte) HashDigest256 {
+	h := HashDigest256{}
+	copy(h[:], b)
+	return h
+}
 
 // CalculatePlotFilterInput return [32]byte
-func CalculatePlotFilterInput(plotId ,challengeHash,signagePoint [HashSize]byte) []byte {
+func CalculatePlotFilterInput(plotId ,challengeHash,signagePoint HashDigest256) []byte {
 	bytes := make([]byte, 32*3)
 	copy(bytes,plotId[:])
 	copy(bytes[32:],challengeHash[:])
@@ -15,7 +34,7 @@ func CalculatePlotFilterInput(plotId ,challengeHash,signagePoint [HashSize]byte)
 }
 
 // CalculatePosChallenge return [32]byte
-func CalculatePosChallenge(plotId, challengeHash, signagePoint [HashSize]byte) []byte {
+func CalculatePosChallenge(plotId, challengeHash, signagePoint HashDigest256) []byte {
 	sum256 := sha256.Sum256(CalculatePlotFilterInput(plotId, challengeHash, signagePoint))
 	return sum256[:]
 }
@@ -27,7 +46,7 @@ func CalculatePlotIdPk(poolContractPuzzleHash, plotPublicKey PublicKey) []byte {
 }
 
 // CalculatePlotIdPh return [32]byte
-func CalculatePlotIdPh(poolContractPuzzleHash [HashSize]byte, plotPublicKey PublicKey) []byte {
+func CalculatePlotIdPh(poolContractPuzzleHash HashDigest256, plotPublicKey PublicKey) []byte {
 	sum256 := sha256.Sum256(append(poolContractPuzzleHash[:], plotPublicKey.Bytes()...))
 	return sum256[:]
 }
